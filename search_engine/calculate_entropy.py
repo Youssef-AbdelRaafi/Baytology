@@ -273,12 +273,22 @@ def ask_user_question_Based_on_entropy(data_frame, current_filters):
     # 2. Define Mapping: CSV Column -> Pydantic/Filter Key
     # IMPORTANT: These values must match the keys in your 'filters' JSON exactly!
     column_mapping = {
-        "price": "max_price",       # CSV 'price' checks filter 'max_price'
-        "location": "location",
-        "bedrooms": "min_bedrooms", # CSV 'bedrooms' checks filter 'min_bedrooms'
+        # Location
+        "governorate": "governorate",
+        "city": "city",
+        "district": "district",
+        "compound": "compound",
+        
+        # Numbers
+        "price": "max_price",
+        "size_sqm": "min_size_sqm",
+        "bedrooms": "min_bedrooms",
         "bathrooms": "min_bathrooms",
+        
+        # Categorical
+        "type": "property_type",
         "payment_method": "payment_method",
-        "type": "property_type"
+        "mid_room": "mid_room"
     }
 
     valid_entropies = {}

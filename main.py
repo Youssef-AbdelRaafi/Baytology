@@ -1,25 +1,43 @@
-# app_test.py
 from parser.parse_user_txt import parse_user_query
 from parser.data_validation import RealEstateQuery
 from search_engine.search_engine import load_data, filter_properties
 from model.helper_functions import score_and_rank
-import os
+from search_engine.calculate_entropy import ask_user_question_Based_on_entropy
 from langchain_google_genai import ChatGoogleGenerativeAI
+import os
 import joblib
+from dotenv import load_dotenv  
+import time
+
+
+
+# 1. Load the .env file immediately
+load_dotenv()
 
 
 
 # change the current working dir
 os.chdir(os.getcwd())
 
+# Load the .env file
+
+os.getenv("GOOGLE_API_KEY")
 # get the gemini api key
-os.environ["GOOGLE_API_KEY"] = "AIzaSyAg1iQn7OCCGnECwI0JCXkvm3uar2mridM"
+# os.environ["GOOGLE_API_KEY"] = api_key
 
 # 1. Load Data
-df = load_data("../Baytology/egypt_real_estate_preprocessed.csv")
+csv_path = os.getenv("CSV_FILE_PATH")
+
+# Now load
+df = load_data(csv_path)  
 
 # 2. Get User Input
-user_text = "عايز شقه في القاهرة ب 3 مليون و فيها 3 خمامات"
+# user_text = "عايز شقه في القاهرة ب 3 مليون و فيها 3 خمامات"
+# user_text = "انت ممكن تساعدني ازاي"
+user_text_1 = "عايز اشتري شقة في التجمع"
+user_text_2 = "بضور على حاجة في بادية بالم هيلز في حدود 5 مليون جنيه"
+user_text_3 = "محتاج تاون هاوس في العاصمة الإدارية R7، الميزانية 8 مليون وهدفع قسط. ضروري يكون فيه غرفة شغالة."
+
 
 
 # 3. CONFIGURE GEMINI
@@ -28,20 +46,33 @@ llm = ChatGoogleGenerativeAI(
     temperature=0  # 0 means "be precise, don't be creative"
 )
 
+
+
 structured_llm = llm.with_structured_output(RealEstateQuery)
 
 
 # 3. Phase 1: AI Understanding
 print("🤖 AI is thinking...")
 
-# parse the user input
-filters = parse_user_query(structured_llm=structured_llm,text=user_text)
+# calculate time for the 2 requests to gemini
+start_time = time.perf_counter()
 
-# print(f"\n🔍 Extracted Filters: {filters}")
+# parse the user input
+filters = parse_user_query(structured_llm=structured_llm,text=user_text_3)
+
+# filters = {'location': 'Cairo', 'property_type': 'Apartment', 'min_bedrooms': 2, 'min_bathrooms': None, 'max_price': 3000000.0, 'payment_method': None}
+print(f"\n🔍 Extracted Filters: {filters}")
 
 
 # 4. Phase 2: Database Search
 matches = filter_properties(df, filters)
+# print(type(matches))
+print(" ")
+print(ask_user_question_Based_on_entropy(matches, filters))
+
+end_time = time.perf_counter()
+elapsed_time = end_time - start_time
+print(f"Execution time: {elapsed_time:.4f} seconds")
 # print(f"\n🏠 Found {len(matches)} houses matching your request.")
 
 # if len(matches) > 0:
@@ -58,11 +89,11 @@ matches = filter_properties(df, filters)
 
 # We load the model and the translators we just created
 try:
-    model = joblib.load('../Baytology/model/price_model.pkl')
-    le_location = joblib.load('../Baytology/model/location_encoder.pkl')
-    le_type = joblib.load('../Baytology/model/type_encoder.pkl')
-    le_payment = joblib.load('../Baytology/model/payment_encoder.pkl')
-    print("\n✅ AI Judge loaded successfully.")
+    model = joblib.load('../Baytology/model/brains/price_model.pkl')
+    le_location = joblib.load('../Baytology/model/brains/location_encoder.pkl')
+    le_type = joblib.load('../Baytology/model/brains/type_encoder.pkl')
+    le_payment = joblib.load('../Baytology/model/brains/payment_encoder.pkl')
+    # print("\n✅ AI Judge loaded successfully.")
 
 except FileNotFoundError:
     print("❌ Error: Model files not found. Run train_model.py first.")
@@ -77,8 +108,8 @@ if not matches.empty:
     best_houses = score_and_rank(candidates_df=matches,le_location=le_location, le_type=le_type,le_payment=le_payment,model=model)
     
     # Show Top 3 Recommendations
-    print(f"TOP {len(matches)} RECOMMENDED DEALS:")
-    for index, row in best_houses.head(len(matches)).iterrows():
+    print(f"TOP 5 RECOMMENDED DEALS:")
+    for index, row in best_houses.head(5).iterrows():
         print("-" * 30)
         print(f"{row['type']} in {row['location']}")
         print(f"Price: {row['price']:,.0f} EGP")

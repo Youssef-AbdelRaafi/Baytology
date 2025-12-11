@@ -144,11 +144,11 @@ class RealEstateQuery(BaseModel):
     
     # --- EXTRAS ---
 
-    mid_room: Optional[bool] = Field(
-        None,
-        description="Maid/Nanny Room (Odet Shaghala). "
-                    "Set to True ONLY if the user explicitly asks for: 'غرفة ناني', 'غرفة شغالة', 'غرفة خدمات', 'Maid Room', or 'Nanny Room'."
-    )
+    # mid_room: Optional[bool] = Field(
+    #     None,
+    #     description="Maid/Nanny Room (Odet Shaghala). "
+    #                 "Set to True ONLY if the user explicitly asks for: 'غرفة ناني', 'غرفة شغالة', 'غرفة خدمات', 'Maid Room', or 'Nanny Room'."
+    # )
 
     payment_method: Optional[Literal["Cash", "Installments"]] = Field(
         None, 

@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 
-os.chdir(os.getcwd())
+os.path.dirname(__file__)
 
 # 1. LOAD THE SAVED BRAINS
 # We load the model and the translators we just created

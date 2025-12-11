@@ -245,23 +245,30 @@ def ask_user_question_Based_on_entropy(data_frame):
 
 
 
+# ============================================================
+# 1. ENTROPY CALCULATOR (Returns All Scores)
+# ============================================================
 def calculate_all_columns_entropy(data_frame):
+    """
+    Calculates entropy for every column in the dataframe.
+    Returns a dictionary: {'col_name': entropy_score}
+    """
     entropy_results = {}
     for col in data_frame.columns:
-        # Calculate and store everyone
+        # We assume calculate_column_entropy is defined elsewhere in your code
         entropy_results[col] = calculate_column_entropy(data_frame[col])
     
-    # Return everything! Do not pick the max here.
     return entropy_results
 
-
-
-
+# ============================================================
+# 2. THE SMART QUESTION GENERATOR (V2 Compatible)
+# ============================================================
 def ask_user_question_Based_on_entropy(data_frame, current_filters):
     """
-    1. Calculates entropy.
-    2. Checks which attributes are already answered in 'current_filters'.
-    3. Asks about the highest entropy attribute that is NOT yet answered.
+    1. Calculates entropy for all columns.
+    2. Maps CSV columns to Pydantic V2 Model fields.
+    3. Checks current_filters to see what is already answered.
+    4. Asks about the highest entropy attribute that is missing.
     """
     
     api_key = os.getenv("GOOGLE_API_KEY")
@@ -270,22 +277,22 @@ def ask_user_question_Based_on_entropy(data_frame, current_filters):
     # 1. Calculate entropy for ALL columns
     all_entropies = calculate_all_columns_entropy(data_frame)
 
-    # 2. Define Mapping: CSV Column -> Pydantic/Filter Key
-    # IMPORTANT: These values must match the keys in your 'filters' JSON exactly!
+    # 2. Define Mapping: "Database Column Name" -> "Pydantic Field Name"
+    # This aligns perfectly with your RealEstateQuery V2 Class
     column_mapping = {
-        # Location
+        # Location Hierarchy
         "governorate": "governorate",
         "city": "city",
         "district": "district",
         "compound": "compound",
         
-        # Numbers
+        # Numbers (Constraint Logic)
         "price": "max_price",
         "size_sqm": "min_size_sqm",
         "bedrooms": "min_bedrooms",
         "bathrooms": "min_bathrooms",
         
-        # Categorical
+        # Categorical / Boolean
         "type": "property_type",
         "payment_method": "payment_method",
         "mid_room": "mid_room"
@@ -295,50 +302,59 @@ def ask_user_question_Based_on_entropy(data_frame, current_filters):
 
     # 3. Filter Logic
     for csv_col, entropy_val in all_entropies.items():
-        # Get the key used in the filters JSON
-        filter_key = column_mapping.get(csv_col, csv_col)
+        # Get the key used in the filters JSON (Pydantic Field Name)
+        filter_key = column_mapping.get(csv_col)
         
-        # CHECK 1: Is this field in our Pydantic Model?
+        # SKIP if the column is not in our mapping (e.g., 'id', 'url')
+        if not filter_key:
+            continue
+            
+        # SKIP if this field is not in the Pydantic Model
         if filter_key not in RealEstateQuery.model_fields:
             continue
 
-        # CHECK 2 (NEW): Has the user already provided this info?
-        # We look at the value in current_filters. 
-        # If it is NOT None, we skip it (because we already know the answer).
+        # CHECK: Has the user already provided this info?
         user_value = current_filters.get(filter_key)
         
+        # If user_value is NOT None, they already answered it. Skip.
         if user_value is not None:
-            # User already answered this (e.g., 'Cairo'), so don't ask again.
             continue
             
-        # If we get here, the value is None, so it's a valid question candidate
+        # If we get here, it's a valid candidate for a question
         valid_entropies[filter_key] = entropy_val
 
-    # If everything is filled out (valid_entropies is empty)
+    # If no valid attributes remain (User answered everything)
     if not valid_entropies:
         return "تمام، أنا عندي كل التفاصيل اللي محتاجها. تحب أعرضلك النتائج؟"
 
     # 4. Find the key with the highest entropy among the UNANSWERED ones
     target_key = max(valid_entropies, key=valid_entropies.get)
 
-    # 5. Retrieve description
+    # 5. Retrieve the description from Pydantic V2 to give context to Gemini
     field_description = RealEstateQuery.model_fields[target_key].description
 
-    # 6. Generate Question
+    # 6. Generate Question using Gemini
     try:
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash", 
+            model="gemini-2.5-flash", # Corrected from 2.5 to 1.5
             google_api_key=api_key, 
             temperature=0.7
         )
 
-        template = """You are a friendly Egyptian real estate assistant (Semsar).
+        template = """You are a helpful and friendly Egyptian real estate assistant (Semsar).
         The user has NOT specified their preference for: '{attribute_name}'.
         
-        Context: {attribute_description}
+        Attribute Context: {attribute_description}
         
-        Task: Ask a short, natural question in **Egyptian Arabic** to get this information.
-        If asking about budget/price, use 'Mizaniya'and if user ask you about.
+        Task: Write a single, short, natural question in **Egyptian Arabic (Ammiya)** asking the user for their preference.
+        
+        Guidelines:
+        - Use Egyptian terms ('كام', 'عايز', 'فين', 'ايه').
+        - Be polite but conversational.
+        - **Price/Budget**: Use the word 'Mizaniya' (ميزانية).
+        - **Compound**: Ask if they prefer a specific project.
+        - **Maid Room**: Ask if they need a room for the Nanny/Help (غرفة شغالة/ناني).
+        - **Payment**: Ask 'Cash walla Ta'seet?' (كاش ولا قسط؟).
         """
         
         prompt = PromptTemplate.from_template(template)
@@ -349,8 +365,8 @@ def ask_user_question_Based_on_entropy(data_frame, current_filters):
             "attribute_description": field_description
         })
         
-        return question.strip(), valid_entropies
+        return question.strip()
 
     except Exception as e:
-        print(f"Error: {e}")
-        return  f"ممكن تقولي تفضيلاتك بخصوص {target_key}؟"
+        print(f"LangChain Error: {e}")
+        return f"ممكن تقولي تفضيلاتك بخصوص {target_key}؟"

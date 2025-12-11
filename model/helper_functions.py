@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def safe_transform(encoder, value):
     """
     Tries to convert text to number. 
@@ -51,3 +52,6 @@ def score_and_rank(candidates_df, le_location, le_type, le_payment, model):
     top_picks = candidates_df.sort_values(by='deal_score', ascending=False).head(10)
     
     return top_picks
+
+
+

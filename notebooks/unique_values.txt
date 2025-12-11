@@ -1,0 +1,43 @@
+Al Gouna,New Zayed City,Ras Al Hekma,5th Settlement Compounds,New Capital City
+Qesm Marsa Matrouh,Hurghada,Makadi,Qesm Ad Dabaah,New Heliopolis Compounds
+Cairo,Mostakbal City Compounds,6 October Compounds,Sidi Heneish,Soma Bay
+New Cairo City,Cairo Gate,26th of July Corridor,6th District,Al Ain Al Sokhna
+New Capital Compounds,Fifth Square,Sheraton Al Matar,Mohandessin,Youssef Afifi Road
+New Alamein City,Hadayek October,Qalyubia,The 1st Settlement,Alexandria Compounds
+Almazah,Fayoum Desert road,Cairo Alexandria Desert Road,Mokattam,El Shorouk Compounds
+Al Andalus District,1st Neighborhood,Smouha,Shorouk City,Family Housing
+Obour Market,Al Narges,Zed Towers,The 6th Settlement,4th District
+Athar El Nabi,5th District,Raas Matarma,6 October City,South Investors Area
+14th District,R8,El Saaqah St.,Downtown Area,Maadi
+R7,3rd District East,9th District,El Katameya Compounds,West Somid
+Sharqia,Dokki,The 3rd Settlement,Nasr City Compounds,Riviera City
+90 Street,Markaz Al Hamam,8th District,Al Motamayez District,Al Wahat Road
+Al Hadaba Al Olya,Intercontinental District,Sheraton Rd,Ext North Inves Area,16th District
+Tag Ad Dewal,Mostakbal City - Future City,12th District,2nd District East,Stella Di Mare
+Beverly Hills,El Fustat ( Coptic Cairo ),Marsa Matrouh,7th Area,Boulevard Road
+North Investors Area,New Heliopolis,New Obour City,New Mansoura,2nd District
+Degla,El Patio,Hadayek El Ahram,Al Rehab,Hay Sharq
+Al Agouza,10th of Ramadan City,New Damietta,Shobra Al Khaimah,Aswan
+Green Belt,Asyut,Aka Square,17th District,Qasouret Ash Shawam
+Sharm El Sheikh,Seyouf,Ring Road,Al Shabab St.,Al Dabaa Corridor
+Luxor,Hay Al Amereyah,Al Hadaba Al Wosta,2nd Neighborhood,Demyat
+San Stefano,2nd Area,North Teseen St.,North Coast Resorts,Miami
+Sporting,Rehab City Second Phase,El Banafseg,Masaken Al Mohandesin,El Hegaz Square
+Glim,Camp Chezar,3rd District West,6th Zone,Fuka
+Nice,Ard El Golf,Janaklees,District 3,King Mariout
+Red Sea,Al Abageyah,10th Zone,Neighborhood 26,Cairo - Ismailia Desert Road
+Giza District,Marseilia,Nasr City,Area C,South Teseen St.
+Waboor Elmayah,Ganoob El Acadimia,Waslet Dahshur Road,District 1,Rehab City First Phase
+Borg El Arab,Asafra,Gameat Al Azhar,Al Maamoura,Stanley
+Zamalek,Saba Basha,El Banafseg 6,Ibrahimia,Saraya
+Hay El Manial,El Montazah,Balteem,1st Zone,Zayed Greens Compound
+Al Thawra St.,Bolkly,Moharam Bek,Nozha,El Mandara
+Mountain view,Faisal,Section 12,El Manial,Al-Montaza Palace
+El Yasmeen 3,New Maadi,8th Zone,Area A,Hay Awal El Montazah
+Fleming,Greens,El Nozha,Heliopolis - Masr El Gedida,Al Gamea Square
+El Mearag City,El Yasmeen 5,El Yasmeen 7,Rabaa Al Adaweyah,3rd Area
+El Banafseg 8,Backus,Hay Than El Montazah,Rehab City Forth Phase,Mubarak Neighborhood
+El Korba,Rehab City Fifth Phase,1st District,District 5,Suez
+3rd Sector,Golf City,Gamal Abdel-Nasser Axis,Tiamo City,Area E
+Monshaat Al Bakari,El Banafseg 7,El Laselky,Al Narges 7,Mustafa Kamel
+10th District

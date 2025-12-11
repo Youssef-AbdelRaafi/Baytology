@@ -217,3 +217,5 @@ __marimo__/
 
 /Baytology/learning_new_consepts/*.py
 /Baytology/notebooks/*.ipynb
+/Baytology/notebooks/analysis-and-segmentation.ipynb
+.env

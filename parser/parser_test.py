@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
 
     # Test 1: iVilla in October (Specific Type Check)
-    t1 = "عايز اي فيلا في اكتوبر تبع ماونتن فيو تكون 4 غرف و 3 حمامات"
+    t1 = "عايز فيلا في اكتوبر تبع ماونتن فيو تكون 4 غرف و 3 حمامات"
     print(f"Input: {t1}")
     print(f"Result: {parse_user_query(structured_llm=structured_llm,text=t1)}")
     # Expected: property_type='iVilla', location='Mountain View', min_bedrooms=4...

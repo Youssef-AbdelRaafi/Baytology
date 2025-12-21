@@ -777,17 +777,46 @@ The project follows **Clean Code and MLOps best practices**, enabling safe setup
 The project requires **Python 3.8+**.  
 Using a virtual environment is strongly recommended to isolate dependencies.
 
+#### ⚠️ Critical Note for Windows Users: > The faiss-cpu library is not natively compatible with standard Windows pip installations in some environments. To run this project on Windows, you must use one of the following methods:
+Option A: Anaconda / Miniconda (Recommended)
+Conda handles the complex C++ dependencies required by FAISS automatically.
+
+```bash
+# Create a conda environment
+conda create -n baytology python=3.9
+conda activate baytology
+
+# Install FAISS via the pytorch channel
+conda install -c pytorch faiss-cpu
+
+# Install remaining requirements
+pip install -r requirements.txt
+---
+```
+
+#### Option B: Windows Subsystem for Linux (WSL)
+If you prefer a Linux environment on Windows, use WSL (Ubuntu). FAISS installs smoothly via pip in Linux environments.
+ ```bash
+# Inside your WSL terminal
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+---
+```
+#### Option C: Standard Virtual Environment (If applicable)
+If you are on a system where FAISS binary wheels are supported:
 ```bash
 # Create a virtual environment
 python -m venv venv
 
-# Activate the environment (Windows)
+# Activate (Windows)
 venv\Scripts\activate
 
-# Install required libraries
+# Install libraries
 pip install -r requirements.txt
 ---
 ```
+
 ### 🚀 2. Running the Full Pipeline
 
 The entire system lifecycle: `Preprocessing → Training → Verification` is fully automated.

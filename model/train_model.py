@@ -1,10 +1,17 @@
 import pandas as pd
 import joblib
+import sys
+import os
+
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from config import settings
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
 
 # 1. LOAD DATA
-df = pd.read_csv("/home/saad-naeem/Desktop/Level_4/Graduation_project_saad/chatbot/Baytology/egypt_real_estate_preprocessed.csv")
+df = pd.read_csv(settings.csv_file_path)
 
 # 1. Force convert price to numbers (turns bad text into NaN)
 df['price'] = pd.to_numeric(df['price'], errors='coerce')

@@ -4,32 +4,16 @@ from search_engine.search_engine import load_data, filter_properties
 from model.helper_functions import score_and_rank
 from search_engine.calculate_entropy import ask_user_question_Based_on_entropy
 from langchain_google_genai import ChatGoogleGenerativeAI
+from config import settings
 import os
 import joblib
-from dotenv import load_dotenv  
 import time
 
-
-
-# 1. Load the .env file immediately
-load_dotenv()
-
-
-
-# change the current working dir
-os.chdir(os.getcwd())
-
-# Load the .env file
-
-os.getenv("GOOGLE_API_KEY")
-# get the gemini api key
-# os.environ["GOOGLE_API_KEY"] = api_key
+# Set API key for Google Gemini
+os.environ["GOOGLE_API_KEY"] = settings.google_api_key
 
 # 1. Load Data
-csv_path = os.getenv("CSV_FILE_PATH")
-
-# Now load
-df = load_data(csv_path)  
+df = load_data(settings.csv_file_path)  
 
 # 2. Get User Input
 # user_text = "عايز شقه في القاهرة ب 3 مليون و فيها 3 خمامات"
@@ -84,16 +68,16 @@ print(f"Execution time: {elapsed_time:.4f} seconds")
 # ==========================================
 # 6. PHASE 3: AI JUDGE (The Ranker)
 # ==========================================
-# 1. LOAD THE SAVED BRAINS
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BRAINS_DIR = os.path.join(SCRIPT_DIR, 'model', 'brains')
 
-
-# We load the model and the translators we just created
+# Load the model and the encoders
 try:
-    model = joblib.load('../Baytology/model/brains/price_model.pkl')
-    le_location = joblib.load('../Baytology/model/brains/location_encoder.pkl')
-    le_type = joblib.load('../Baytology/model/brains/type_encoder.pkl')
-    le_payment = joblib.load('../Baytology/model/brains/payment_encoder.pkl')
-    # print("\n✅ AI Judge loaded successfully.")
+    model = joblib.load(os.path.join(BRAINS_DIR, 'price_model.pkl'))
+    le_location = joblib.load(os.path.join(BRAINS_DIR, 'location_encoder.pkl'))
+    le_type = joblib.load(os.path.join(BRAINS_DIR, 'type_encoder.pkl'))
+    le_payment = joblib.load(os.path.join(BRAINS_DIR, 'payment_encoder.pkl'))
 
 except FileNotFoundError:
     print("❌ Error: Model files not found. Run train_model.py first.")

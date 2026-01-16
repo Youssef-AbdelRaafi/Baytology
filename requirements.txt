@@ -18,6 +18,7 @@ distro==1.9.0
 executing @ file:///home/conda/feedstock_root/build_artifacts/executing_1756729339227/work
 filetype==1.2.0
 fonttools==4.60.1
+fastapi==0.128.0
 gitdb==4.0.12
 GitPython==3.1.45
 google-ai-generativelanguage==0.9.0
@@ -117,6 +118,7 @@ typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/bld/rattle
 tzdata @ file:///croot/python-tzdata_1746123641790/work
 uritemplate==4.2.0
 urllib3==2.5.0
+uvicorn==0.40.0
 uuid_utils==0.12.0
 watchdog==6.0.0
 wcwidth @ file:///home/conda/feedstock_root/build_artifacts/wcwidth_1758622279606/work

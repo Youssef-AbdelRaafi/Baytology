@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baytology API Tester</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 150px);
+        }
+
+        .chat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            padding: 15px 20px;
+            border-radius: 15px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #7b2cbf, #9d4edd);
+            align-self: flex-start;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot {
+            background: linear-gradient(135deg, #0077b6, #00b4d8);
+            align-self: flex-end;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.question {
+            background: linear-gradient(135deg, #f77f00, #fcbf49);
+            color: #1a1a2e;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #00d4ff, #0077b6);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .filters {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .filter-key {
+            color: #7b2cbf;
+        }
+
+        .filter-value {
+            color: #00d4ff;
+        }
+
+        .properties {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .property-card {
+            background: linear-gradient(135deg, rgba(0, 119, 182, 0.3), rgba(0, 180, 216, 0.2));
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .property-card h4 {
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+
+        .property-card p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .price {
+            font-size: 1.2rem;
+            color: #fcbf49;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #d00000, #9d0208);
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .status.connected {
+            background: rgba(0, 200, 83, 0.2);
+            color: #00c853;
+        }
+
+        .status.error {
+            background: rgba(208, 0, 0, 0.2);
+            color: #ff5252;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🏠 Baytology API Tester</h1>
+
+        <div class="chat-container">
+            <div class="chat-box">
+                <div id="status" class="status">جاري الاتصال...</div>
+                <div class="messages" id="messages"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>جاري المعالجة...</p>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="userInput" placeholder="اكتب رسالتك هنا... مثال: عايز شقة في التجمع" />
+                    <button onclick="sendMessage()" id="sendBtn">إرسال</button>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h3>📋 الفلاتر الحالية</h3>
+                <div class="filters" id="filters">
+                    <p style="color: rgba(255,255,255,0.5);">لا توجد فلاتر بعد</p>
+                </div>
+
+                <h3>🏘️ العقارات (آخر نتائج)</h3>
+                <div class="properties" id="properties">
+                    <p style="color: rgba(255,255,255,0.5);">لا توجد نتائج بعد</p>
+                </div>
+
+                <button class="clear-btn" onclick="clearSession()">🗑️ مسح المحادثة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const SESSION_ID = 'test_' + Date.now();
+
+        let currentFilters = {};
+
+        // Check API connection
+        async function checkConnection() {
+            const status = document.getElementById('status');
+            try {
+                const res = await fetch(API_URL + '/');
+                if (res.ok) {
+                    status.className = 'status connected';
+                    status.textContent = '✅ متصل بالـ API';
+                }
+            } catch (e) {
+                status.className = 'status error';
+                status.textContent = '❌ غير متصل - تأكد من تشغيل: uvicorn api:app --port 8000';
+            }
+        }
+
+        // Add message to chat
+        function addMessage(text, type) {
+            const messages = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Update filters display
+        function updateFilters(filters) {
+            currentFilters = { ...currentFilters, ...filters };
+            const filtersDiv = document.getElementById('filters');
+
+            const entries = Object.entries(currentFilters).filter(([k, v]) => v !== null);
+
+            if (entries.length === 0) {
+                filtersDiv.innerHTML = '<p style="color: rgba(255,255,255,0.5);">لا توجد فلاتر بعد</p>';
+                return;
+            }
+
+            filtersDiv.innerHTML = entries.map(([key, value]) => `
+                <div class="filter-item">
+                    <span class="filter-key">${key}</span>
+                    <span class="filter-value">${value}</span>
+                </div>
+            `).join('');
+        }
+
+        // Update properties display
+        function updateProperties(properties) {
+            const propertiesDiv = document.getElementById('properties');
+
+            if (!properties || properties.length === 0) {
+                propertiesDiv.innerHTML = '<p style="color: rgba(255,255,255,0.5);">لا توجد نتائج</p>';
+                return;
+            }
+
+            propertiesDiv.innerHTML = properties.slice(0, 5).map(p => `
+                <div class="property-card">
+                    <h4>${p.type || 'عقار'} - ${p.city || ''}</h4>
+                    <p>🛏️ ${p.bedrooms || '-'} غرف | 🚿 ${p.bathrooms || '-'} حمام | 📐 ${p.size_sqm || '-'} م²</p>
+                    <p class="price">💰 ${(p.price || 0).toLocaleString()} جنيه</p>
+                </div>
+            `).join('');
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            addMessage(text, 'user');
+            input.value = '';
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                const res = await fetch(API_URL + '/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: SESSION_ID,
+                        message: text
+                    })
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    addMessage('❌ خطأ: ' + (errorData.detail || 'خطأ غير معروف'), 'bot');
+                    return;
+                }
+
+                const data = await res.json();
+                console.log('API Response:', data);  // Debug
+
+                // Update filters from parse
+                if (data.filters) {
+                    updateFilters(data.filters);
+                }
+
+                // Add bot response message
+                if (data.message) {
+                    addMessage(data.message, 'bot');
+                }
+
+                // Add question if exists
+                if (data.question) {
+                    addMessage(data.question, 'question');
+                }
+
+                // Show properties count and update sidebar
+                if (data.properties && data.properties.length > 0) {
+                    updateProperties(data.properties);
+
+                    // Also show properties summary in chat
+                    const propSummary = data.properties.slice(0, 3).map(p =>
+                        `🏠 ${p.type || 'عقار'} في ${p.city || '?'} - ${(p.price || 0).toLocaleString()} جنيه`
+                    ).join('\n');
+                    addMessage('أفضل النتائج:\n' + propSummary, 'bot');
+                } else if (data.type === 'results' || data.type === 'fallback') {
+                    addMessage('⚠️ لم يتم العثور على عقارات', 'bot');
+                }
+
+            } catch (e) {
+                addMessage('❌ حدث خطأ في الاتصال: ' + e.message, 'bot');
+                console.error(e);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('sendBtn').disabled = false;
+            }
+        }
+
+        // Clear session
+        async function clearSession() {
+            try {
+                await fetch(API_URL + '/session/' + SESSION_ID, { method: 'DELETE' });
+            } catch (e) { }
+
+            document.getElementById('messages').innerHTML = '';
+            currentFilters = {};
+            updateFilters({});
+            updateProperties([]);
+            addMessage('تم مسح المحادثة. ابدأ من جديد!', 'bot');
+        }
+
+        // Enter key to send
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Initial connection check
+        checkConnection();
+        addMessage('مرحباً! أنا Baytology. قولي بتدور على إيه؟', 'bot');
+    </script>
+</body>
+
+</html>

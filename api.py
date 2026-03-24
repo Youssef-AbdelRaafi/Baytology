@@ -331,7 +331,7 @@ def rank_properties(request: RankRequest):
         properties_df = pd.DataFrame(request.properties)
         
         # Rank
-        ranked_df = score_and_rank(properties_df, model, le_loc, le_type, le_pay)
+        ranked_df = score_and_rank(properties_df, le_loc, le_type, le_pay, model)
         
         return RankResponse(ranked=df_to_dict_list(ranked_df))
     
@@ -445,7 +445,7 @@ def chat(request: ChatRequest):
             if attribute is None:
                 # No more questions, show results
                 if model:
-                    ranked = score_and_rank(matches, model, le_loc, le_type, le_pay)
+                    ranked = score_and_rank(matches, le_loc, le_type, le_pay, model)
                 else:
                     ranked = matches
                 
@@ -467,7 +467,7 @@ def chat(request: ChatRequest):
         # --- CASE 3: Good Results ---
         else:
             if model:
-                ranked = score_and_rank(matches, model, le_loc, le_type, le_pay)
+                ranked = score_and_rank(matches, le_loc, le_type, le_pay, model)
             else:
                 ranked = matches
             

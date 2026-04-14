@@ -12,3 +12,19 @@ faiss_index.bin
 # If your latency tests generate report files or logs
 Model/tests/*.log
 *.results
+
+# --- Streamlit Cache ---
+.streamlit/cache/
+
+# --- Python Cache ---
+__pycache__/
+*.pyc
+
+# --- Jupyter Notebook Cache ---
+.ipynb_checkpoints/
+
+# --- Jupyter Notebook Checkpoints ---
+.ipynb_checkpoints/
+
+.vscode
+FAISS_env/

@@ -25,6 +25,6 @@ __pycache__/
 
 # --- Jupyter Notebook Checkpoints ---
 .ipynb_checkpoints/
-
+env/
 .vscode
 FAISS_env/

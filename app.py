@@ -121,4 +121,4 @@ async def get_recommendations(
     }
 
 # --- Execution Instructions ---
-# Run via terminal: uvicorn app:app --reload
+# Run via terminal: uvicorn app:app --reload               "Application_name:app"

@@ -1,0 +1,30 @@
+# --- Large Data Files ---
+# Ignore raw and preprocessed datasets (CSVs can get huge)
+Datasets/*.csv
+
+# --- FAISS Trained Models ---
+# The binary index file contains your trained "knowledge"
+# It's better to keep this local and recreate it using main.py
+*.bin
+faiss_index.bin
+
+# --- Performance & Test Artifacts ---
+# If your latency tests generate report files or logs
+Model/tests/*.log
+*.results
+
+# --- Streamlit Cache ---
+.streamlit/cache/
+
+# --- Python Cache ---
+__pycache__/
+*.pyc
+
+# --- Jupyter Notebook Cache ---
+.ipynb_checkpoints/
+
+# --- Jupyter Notebook Checkpoints ---
+.ipynb_checkpoints/
+env/
+.vscode
+FAISS_env/

@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Baytology.Api/Baytology.Api.csproj" />
+    <Project Path="src/Baytology.Application/Baytology.Application.csproj" />
+    <Project Path="src/Baytology.Contracts/Baytology.Contracts.csproj" />
+    <Project Path="src/Baytology.Domain/Baytology.Domain.csproj" />
+    <Project Path="src/Baytology.Infrastructure/Baytology.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Baytology.Api.Tests/Baytology.Api.Tests.csproj" />
+    <Project Path="tests/Baytology.Application.Tests/Baytology.Application.Tests.csproj" />
+    <Project Path="tests/Baytology.Domain.Tests/Baytology.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

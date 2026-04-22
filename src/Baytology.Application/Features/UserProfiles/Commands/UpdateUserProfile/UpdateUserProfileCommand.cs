@@ -1,0 +1,28 @@
+using Baytology.Application.Common.Caching;
+using Baytology.Application.Common.Interfaces;
+using Baytology.Domain.Common.Enums;
+using Baytology.Domain.Common.Results;
+
+using MediatR;
+
+using Microsoft.EntityFrameworkCore;
+
+namespace Baytology.Application.Features.UserProfiles.Commands.UpdateUserProfile;
+
+public record UpdateUserProfileCommand(
+    string UserId,
+    string DisplayName,
+    string? AvatarUrl,
+    string? Bio,
+    string? PhoneNumber,
+    ContactMethod PreferredContactMethod = ContactMethod.Email) : IRequest<Result<Success>>, ICacheInvalidationRequest
+{
+    public IEnumerable<string> CacheTagsToInvalidate =>
+    [
+        ApplicationCacheTags.UserProfiles,
+        ApplicationCacheTags.UserProfile(UserId),
+        ApplicationCacheTags.AgentDetails,
+        ApplicationCacheTags.AgentDetail(UserId),
+        ApplicationCacheTags.Properties
+    ];
+}

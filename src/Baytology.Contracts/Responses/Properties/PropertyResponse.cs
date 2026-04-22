@@ -1,0 +1,27 @@
+namespace Baytology.Contracts.Responses.Properties;
+
+public sealed record PropertyResponse(
+    Guid Id,
+    string AgentUserId,
+    string Title,
+    string? Description,
+    string PropertyType,
+    string ListingType,
+    decimal Price,
+    decimal Area,
+    int Bedrooms,
+    int Bathrooms,
+    int? Floor,
+    int? TotalFloors,
+    string? AddressLine,
+    string? City,
+    string? District,
+    string? ZipCode,
+    decimal? Latitude,
+    decimal? Longitude,
+    string Status,
+    bool IsFeatured,
+    DateTimeOffset CreatedOnUtc,
+    IReadOnlyCollection<PropertyImageResponse>? Images,
+    PropertyAmenityResponse? Amenity,
+    AgentSummaryResponse? Agent);

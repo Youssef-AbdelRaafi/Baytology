@@ -3,12 +3,37 @@
 ## For Angular Frontend Development
 
 This guide helps you run the Baytology FastAPI backend on Windows to integrate with your Angular 19 app.
+The API includes both **text chat** and **voice chat** (speech-to-text) capabilities for Arabic real estate search.
 
 ---
 
 ## Prerequisites
 
 - **LM Studio** running with `gemma-2-9b-it` model on port `1234`
+- **FFmpeg** (required for voice recognition audio processing)
+
+### Install FFmpeg on Windows
+
+**Option A — Using winget (recommended):**
+```powershell
+winget install Gyan.FFmpeg
+```
+
+**Option B — Using Chocolatey:**
+```powershell
+choco install ffmpeg
+```
+
+**Option C — Manual install:**
+1. Download from https://ffmpeg.org/download.html (choose Windows build)
+2. Extract to `C:\ffmpeg`
+3. Add `C:\ffmpeg\bin` to your system PATH
+4. Restart your terminal
+
+Verify:
+```powershell
+ffmpeg -version
+```
 
 ---
 
@@ -48,7 +73,10 @@ conda activate chatbot_grade_project
 
 ```powershell
 pip install -r requirements.txt
+pip install faster-whisper python-multipart
 ```
+
+> **Note:** `faster-whisper` is ~40 MB. On first run, the Whisper `medium` model (~1.5 GB) will be downloaded automatically and cached locally.
 
 ---
 
@@ -63,6 +91,8 @@ LM_STUDIO_URL=http://localhost:1234/v1
 LM_STUDIO_MODEL=gemma-2-9b-it
 MAX_RESULTS=20
 ```
+
+> **Note:** `GOOGLE_API_KEY` is only needed for LLM features. Voice recognition (speech-to-text) runs 100% locally using Whisper — no API key required.
 
 ---
 
@@ -83,9 +113,13 @@ uvicorn api:app --reload --port 8000
 
 **Expected output:**
 ```
+[VOICE] Loading Whisper model 'medium' on cpu...
+[VOICE] ✅ Whisper model loaded successfully.
 INFO:     Uvicorn running on http://127.0.0.1:8000
 INFO:     Application startup complete.
 ```
+
+> The first startup takes 1-2 minutes while the Whisper model downloads. Subsequent starts are much faster.
 
 ---
 
@@ -150,12 +184,31 @@ export class ChatService {
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/chat` | POST | Full conversation flow (main) |
+| `/chat` | POST | Full conversation flow — text input |
+| `/voice-chat` | POST | Full conversation flow — voice/audio input |
 | `/parse` | POST | Parse Arabic text → filters |
 | `/question` | POST | Generate follow-up question |
 | `/rank` | POST | Rank properties by deal score |
 | `/search` | POST | Filter properties |
 | `/session/{id}` | DELETE | Clear session |
+
+### Voice Chat Endpoint (`/voice-chat`)
+
+Accepts audio file upload (WAV, WebM, MP3, etc.) + session ID via `multipart/form-data`.
+
+```typescript
+// Angular example
+sendVoiceMessage(sessionId: string, audioBlob: Blob) {
+  const formData = new FormData();
+  formData.append('session_id', sessionId);
+  formData.append('audio', audioBlob, 'recording.webm');
+  return this.http.post<VoiceChatResponse>(`${this.apiUrl}/voice-chat`, formData);
+}
+
+interface VoiceChatResponse extends ChatResponse {
+  transcription: string;  // The Arabic text recognized from audio
+}
+```
 
 ---
 
@@ -180,3 +233,30 @@ pip install -r requirements.txt
 - Ensure LM Studio is running
 - Check model is loaded
 - Verify port is `1234`
+
+### Voice Recognition Issues
+
+**"ffmpeg not found" or audio decoding errors:**
+```powershell
+# Verify ffmpeg is installed
+ffmpeg -version
+# If not, install it (see Prerequisites above)
+```
+
+**Slow transcription:**
+- CPU transcription takes ~5-15 seconds per request (this is normal)
+- If you have an NVIDIA GPU, edit `config.py`:
+  ```python
+  whisper_device: str = "cuda"          # Use GPU
+  whisper_compute_type: str = "float16"  # GPU-optimized
+  ```
+
+**"ModuleNotFoundError: faster_whisper":**
+```powershell
+pip install faster-whisper
+```
+
+**"Form data requires python-multipart":**
+```powershell
+pip install python-multipart
+```

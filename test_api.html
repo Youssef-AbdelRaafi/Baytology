@@ -144,6 +144,29 @@
             cursor: not-allowed;
         }
 
+        .mic-btn {
+            padding: 15px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9d4edd, #7b2cbf);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .mic-btn.recording {
+            background: linear-gradient(135deg, #d00000, #9d0208);
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(208, 0, 0, 0.4); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px 5px rgba(208, 0, 0, 0.3); }
+        }
+
         .sidebar {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
@@ -275,6 +298,7 @@
                 </div>
                 <div class="input-area">
                     <input type="text" id="userInput" placeholder="اكتب رسالتك هنا... مثال: عايز شقة في التجمع" />
+                    <button class="mic-btn" onclick="toggleMic()" id="micBtn" title="اضغط للتحدث">🎤</button>
                     <button onclick="sendMessage()" id="sendBtn">إرسال</button>
                 </div>
             </div>
@@ -444,6 +468,134 @@
             updateFilters({});
             updateProperties([]);
             addMessage('تم مسح المحادثة. ابدأ من جديد!', 'bot');
+        }
+
+        // --- Voice Recording (MediaRecorder → /voice-chat) ---
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleMic() {
+            if (isRecording) {
+                // Stop recording
+                mediaRecorder.stop();
+            } else {
+                // Start recording
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioChunks = [];
+
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+                    mediaRecorder.onstart = () => {
+                        isRecording = true;
+                        document.getElementById('micBtn').classList.add('recording');
+                        document.getElementById('userInput').placeholder = '🎙️ جاري الاستماع... اضغط مرة أخرى للإيقاف';
+                    };
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        isRecording = false;
+                        document.getElementById('micBtn').classList.remove('recording');
+                        document.getElementById('userInput').placeholder = 'اكتب رسالتك هنا... مثال: عايز شقة في التجمع';
+
+                        // Stop all audio tracks
+                        stream.getTracks().forEach(track => track.stop());
+
+                        // Build audio blob
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        if (audioBlob.size === 0) return;
+
+                        // Send to /voice-chat
+                        await sendVoiceMessage(audioBlob);
+                    };
+
+                    mediaRecorder.onerror = (event) => {
+                        isRecording = false;
+                        document.getElementById('micBtn').classList.remove('recording');
+                        document.getElementById('userInput').placeholder = 'اكتب رسالتك هنا... مثال: عايز شقة في التجمع';
+                        stream.getTracks().forEach(track => track.stop());
+                        addMessage('❌ خطأ في التسجيل: ' + (event.error?.message || 'خطأ غير معروف'), 'bot');
+                    };
+
+                    mediaRecorder.start();
+                } catch (err) {
+                    console.error('Microphone error:', err);
+                    addMessage('❌ لا يمكن الوصول للميكروفون. تأكد من السماح بالوصول في المتصفح.', 'bot');
+                }
+            }
+        }
+
+        async function sendVoiceMessage(audioBlob) {
+            addMessage('🎤 رسالة صوتية...', 'user');
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('micBtn').disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('session_id', SESSION_ID);
+                formData.append('audio', audioBlob, 'recording.webm');
+
+                const res = await fetch(API_URL + '/voice-chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    addMessage('❌ خطأ: ' + (errorData.detail || 'خطأ غير معروف'), 'bot');
+                    return;
+                }
+
+                const data = await res.json();
+                console.log('Voice API Response:', data);
+
+                // Show what was transcribed
+                if (data.transcription) {
+                    addMessage('📝 تم التعرف على: "' + data.transcription + '"', 'bot');
+                }
+
+                // Update filters
+                if (data.filters) {
+                    updateFilters(data.filters);
+                }
+
+                // Bot response message
+                if (data.message) {
+                    addMessage(data.message, 'bot');
+                }
+
+                // Question if exists
+                if (data.question) {
+                    addMessage(data.question, 'question');
+                }
+
+                // Properties
+                if (data.properties && data.properties.length > 0) {
+                    updateProperties(data.properties);
+                    const propSummary = data.properties.slice(0, 3).map(p =>
+                        `🏠 ${p.type || 'عقار'} في ${p.city || '?'} - ${(p.price || 0).toLocaleString()} جنيه`
+                    ).join('\n');
+                    addMessage('أفضل النتائج:\n' + propSummary, 'bot');
+                } else if (data.type === 'results' || data.type === 'fallback') {
+                    addMessage('⚠️ لم يتم العثور على عقارات', 'bot');
+                }
+
+            } catch (e) {
+                addMessage('❌ حدث خطأ في الاتصال: ' + e.message, 'bot');
+                console.error(e);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('sendBtn').disabled = false;
+                document.getElementById('micBtn').disabled = false;
+            }
         }
 
         // Enter key to send

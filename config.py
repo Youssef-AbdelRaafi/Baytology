@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     lm_studio_url: str = "http://localhost:1234/v1"
     lm_studio_model: str = "gemma-2-9b-it"
     
+    # Whisper Configuration (for local voice transcription)
+    whisper_model: str = "large-v3"     # Best Arabic/Egyptian dialect accuracy
+    whisper_device: str = "cpu"         # "cpu" or "cuda"
+    whisper_compute_type: str = "int8"  # "int8" for CPU, "float16" for GPU
+
     # App Settings
     max_results: int = 20
     

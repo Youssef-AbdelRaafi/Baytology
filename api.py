@@ -7,7 +7,7 @@ Provides endpoints for:
 - /rank - Rank properties by ML deal score
 - /search - Filter properties from database
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -19,6 +19,7 @@ from parser.data_validation import RealEstateQuery
 from search_engine.search_engine import load_data, filter_properties
 from search_engine.calculate_entropy import ask_user_question_Based_on_entropy
 from model.helper_functions import score_and_rank
+from voice_utils import transcribe_audio, validate_audio_type
 from langchain_openai import ChatOpenAI
 import joblib
 import os
@@ -97,6 +98,11 @@ class ChatResponse(BaseModel):
     attribute: Optional[str] = None
     properties: list[dict] = []
     properties_count: int = 0
+
+
+class VoiceChatResponse(ChatResponse):
+    """Chat response with additional transcription field for voice input"""
+    transcription: str  # The transcribed text from the audio
 
 
 # --- Load Resources ---
@@ -480,6 +486,58 @@ def chat(request: ChatRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/voice-chat", response_model=VoiceChatResponse)
+async def voice_chat(
+    session_id: str = Form(...),
+    audio: UploadFile = File(...)
+):
+    """
+    Voice chat endpoint — accepts audio, transcribes it, then runs
+    the full chat pipeline (parse → search → rank).
+
+    - **session_id**: Session identifier (form field)
+    - **audio**: Audio file upload (WAV, WebM, MP3, OGG, FLAC, etc.)
+    """
+    try:
+        # --- Step 1: Validate audio type ---
+        mime_type = validate_audio_type(audio.content_type)
+        print(f"[VOICE] Received audio: {audio.filename}, type: {mime_type}")
+
+        # --- Step 2: Read audio bytes ---
+        audio_bytes = await audio.read()
+        if not audio_bytes:
+            raise HTTPException(status_code=400, detail="Empty audio file")
+        print(f"[VOICE] Audio size: {len(audio_bytes)} bytes")
+
+        # --- Step 3: Transcribe audio to text ---
+        transcribed_text = transcribe_audio(audio_bytes, mime_type)
+        print(f"[VOICE] Transcription: '{transcribed_text}'")
+
+        if not transcribed_text:
+            raise HTTPException(status_code=422, detail="Could not transcribe audio")
+
+        # --- Step 4: Run through existing chat pipeline ---
+        chat_request = ChatRequest(session_id=session_id, message=transcribed_text)
+        chat_response = chat(chat_request)
+
+        # --- Step 5: Return combined response ---
+        return VoiceChatResponse(
+            transcription=transcribed_text,
+            type=chat_response.type,
+            message=chat_response.message,
+            question=chat_response.question,
+            attribute=chat_response.attribute,
+            properties=chat_response.properties,
+            properties_count=chat_response.properties_count
+        )
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[VOICE] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Voice processing error: {str(e)}")
 
 
 @app.delete("/session/{session_id}")
